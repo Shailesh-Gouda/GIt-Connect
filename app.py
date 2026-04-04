@@ -16,8 +16,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-me-in-env")
 
 # 🔐 GitHub OAuth (set via env vars in production; do not hardcode secrets)
-CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "")
+CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET")
 GITHUB_REDIRECT_URI = os.environ.get("GITHUB_REDIRECT_URI")
 PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL")
 # NOTE: GitHub may require `repo` scope to create repositories (even public) on some accounts.
