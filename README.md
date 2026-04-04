@@ -27,8 +27,8 @@ gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
 - `GITHUB_CLIENT_ID`
 - `GITHUB_CLIENT_SECRET`
 - `GITHUB_REDIRECT_URI` must be your Render URL + `/callback` (example: `https://YOUR-SERVICE.onrender.com/callback`)
+- Optional: `PUBLIC_BASE_URL` set to your canonical site URL (example: `https://YOUR-SERVICE.onrender.com` or your custom domain) to avoid OAuth state failures caused by mixing domains (`onrender.com` vs custom domain, `www` vs non-`www`, `http` vs `https`).
 
 ### Note about SQLite
 
 This app uses `portpolio.db` (SQLite). On Render, the filesystem is ephemeral unless you attach a persistent disk.
-

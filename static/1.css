@@ -104,6 +104,14 @@ display: flex;
 flex-direction: column;
 align-items: center;
 padding-top: 98px;
+overflow-x: hidden;
+}
+.topbar,
+.hero,
+.hero-inner,
+.card,
+.item {
+  min-width: 0;
 }
 .topbar {
     position: fixed;
@@ -760,11 +768,17 @@ p {
 
 @media screen and (max-width: 640px) {
     .topbar {
-        padding: 0 14px;
+        padding: 10px 14px;
+        height: auto;
+        min-height: 100px;
+        flex-wrap: wrap;
+        row-gap: 10px;
+        align-items: flex-start;
     }
 
     .topbar-brand {
         font-size: 18px;
+        min-width: 0;
     }
 
     .topbar-nav {
@@ -773,6 +787,7 @@ p {
 
     .topbar-right {
         gap: 8px;
+        margin-left: auto;
     }
 
     .topbar-btn {
@@ -795,5 +810,9 @@ p {
     .btn {
         width: 100%;
         padding: 12px 24px;
+    }
+
+    body {
+      padding-top: 140px;
     }
 }

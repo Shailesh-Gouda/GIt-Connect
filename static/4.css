@@ -25,12 +25,14 @@
   font-weight: 900;
   letter-spacing: -0.4px;
   color: hsl(var(--foreground));
+  min-width: 0;
 }
 
 .topbar-brand-subnav {
   display: flex;
   gap: 10px;
   align-items: center;
+  min-width: 0;
 }
 
 .topbar-dd {
@@ -142,6 +144,36 @@
 @media (max-width: 380px) {
   .topbar-dd-items {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar-brand-home {
+    max-width: 70vw;
+  }
+
+  .topbar-brand-name {
+    font-size: 18px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-brand-subnav {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .topbar-brand-subnav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topbar-dd-panel {
+    left: 0;
+    right: 0;
   }
 }
 
@@ -1695,6 +1727,11 @@
 @media (max-width: 520px) {
   .course-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .course-card {
+    min-height: auto;
   }
 }
 

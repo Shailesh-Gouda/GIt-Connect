@@ -5,25 +5,33 @@ import base64
 import re
 import time
 from datetime import datetime, timezone
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 import requests
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-me-in-env")
 
 # 🔐 GitHub OAuth (set via env vars in production; do not hardcode secrets)
-CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "Ov23lipjI5ijZsrxrISm")
-CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "5664fb163ef89aea61c80a670530ec7d3a592c24")
+CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "")
+CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "")
 GITHUB_REDIRECT_URI = os.environ.get("GITHUB_REDIRECT_URI")
+PUBLIC_BASE_URL = os.environ.get("PUBLIC_BASE_URL")
 # NOTE: GitHub may require `repo` scope to create repositories (even public) on some accounts.
 # You can override via env var `GITHUB_OAUTH_SCOPE`.
 GITHUB_OAUTH_SCOPE = os.environ.get("GITHUB_OAUTH_SCOPE", "read:user user:email repo")
 GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
 GITHUB_USER_URL = "https://api.github.com/user"
+
+# Trust Render/Reverse-proxy headers so external URLs and scheme are correct.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
+app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
+if PUBLIC_BASE_URL and PUBLIC_BASE_URL.strip().lower().startswith("https://"):
+    app.config.setdefault("SESSION_COOKIE_SECURE", True)
 
 # 📁 Upload config
 UPLOAD_FOLDER = "static/uploads"
@@ -43,6 +51,42 @@ def _oauth_configured() -> bool:
     if CLIENT_ID == CLIENT_SECRET:
         return False
     return True
+
+
+def _callback_url_for_oauth() -> str:
+    if GITHUB_REDIRECT_URI:
+        return GITHUB_REDIRECT_URI
+    if PUBLIC_BASE_URL:
+        return PUBLIC_BASE_URL.rstrip("/") + url_for("callback")
+    return url_for("callback", _external=True)
+
+
+@app.before_request
+def _enforce_public_base_url():
+    if not PUBLIC_BASE_URL:
+        return None
+
+    try:
+        target = urlparse(PUBLIC_BASE_URL)
+    except Exception:
+        return None
+
+    if not target.scheme or not target.netloc:
+        return None
+
+    current_scheme = request.scheme
+    current_host = request.host
+
+    if current_scheme == target.scheme and current_host == target.netloc:
+        return None
+
+    # Preserve path/query; avoid trailing '?' Flask can append in full_path.
+    path = request.path or "/"
+    qs = request.query_string.decode("utf-8", "ignore")
+    new_url = f"{target.scheme}://{target.netloc}{path}"
+    if qs:
+        new_url = f"{new_url}?{qs}"
+    return redirect(new_url, code=302)
 
 
 def _db() -> sqlite3.Connection:
@@ -1089,14 +1133,14 @@ def login():
     state = secrets.token_urlsafe(24)
     session["oauth_state"] = state
 
+    redirect_uri = _callback_url_for_oauth()
     params = {
         "client_id": CLIENT_ID,
         "scope": GITHUB_OAUTH_SCOPE,
         "state": state,
+        "redirect_uri": redirect_uri,
     }
     params["prompt"] = "consent"
-    if GITHUB_REDIRECT_URI:
-        params["redirect_uri"] = GITHUB_REDIRECT_URI
     return redirect(f"{GITHUB_AUTHORIZE_URL}?{urlencode(params)}")
 
 
@@ -1116,12 +1160,20 @@ def callback():
         return redirect(url_for("developer"))
 
     if not expected_state or not state or state != expected_state:
+        app.logger.warning(
+            "OAuth state mismatch. host_url=%s state=%s expected=%s redirect_uri=%s",
+            request.host_url,
+            state,
+            expected_state,
+            _callback_url_for_oauth(),
+        )
         flash(
-            "Login failed (invalid OAuth state). Open the app using the SAME address (127.0.0.1 vs localhost) and try again.",
+            "Login failed (invalid OAuth state). Make sure you start login and complete the callback on the SAME domain (onrender vs custom domain, http vs https, www vs non-www).",
             "error",
         )
         return redirect(url_for("developer"))
 
+    redirect_uri = _callback_url_for_oauth()
     token_res = requests.post(
         GITHUB_TOKEN_URL,
         headers={"Accept": "application/json"},
@@ -1129,16 +1181,20 @@ def callback():
             "client_id": CLIENT_ID,
             "client_secret": CLIENT_SECRET,
             "code": code
+            ,
+            "redirect_uri": redirect_uri,
         },
         timeout=15,
     )
 
     if not token_res.ok:
+        app.logger.warning("GitHub token exchange failed. status=%s body=%s", token_res.status_code, token_res.text[:500])
         flash("GitHub token exchange failed. Please try again.", "error")
         return redirect(url_for("developer"))
 
     access_token = (token_res.json() or {}).get("access_token")
     if not access_token:
+        app.logger.warning("GitHub token missing in response. body=%s", token_res.text[:500])
         flash("GitHub token was not returned. Check OAuth app settings.", "error")
         return redirect(url_for("developer"))
 
