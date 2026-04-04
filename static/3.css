@@ -1,0 +1,179 @@
+/* Extends static/1.css for the edit form page (templates/3.html). */
+
+.page-form .hero-inner--form {
+  width: 100%;
+  max-width: none;
+  text-align: left;
+}
+
+.page-form .hero {
+  padding: 26px 22px 90px;
+}
+
+.section-last {
+  padding-bottom: 10px;
+}
+
+.form-header {
+  padding: 10px 0 14px;
+}
+
+.form-title {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.15;
+  letter-spacing: -0.8px;
+}
+
+.form-subtitle {
+  margin: 10px 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.section {
+  padding: 20px 0 22px;
+  border-top: 1px solid hsl(var(--border) / 0.75);
+}
+
+.section-title {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: hsl(var(--foreground));
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.field {
+  min-width: 0;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 6px;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid hsl(var(--border) / 0.9);
+  border-radius: 12px;
+  background: hsl(var(--secondary) / 0.35);
+  color: hsl(var(--foreground));
+  font-size: 15px;
+  line-height: 1.45;
+  outline: none;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: hsl(var(--sidebar-primary) / 0.65);
+  box-shadow: 0 0 0 4px hsl(var(--sidebar-primary) / 0.12);
+}
+
+.field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* Bigger text areas for readability */
+.field textarea[name="skills"] {
+  min-height: 170px;
+}
+
+.field textarea[name="notes"] {
+  min-height: 190px;
+}
+
+.field textarea[name="bio"] {
+  min-height: 140px;
+}
+
+.field textarea[name="objective"] {
+  min-height: 130px;
+}
+
+.field textarea[name="why_me"] {
+  min-height: 140px;
+}
+
+.field textarea[name="achievements"],
+.field textarea[name="certificates"] {
+  min-height: 150px;
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+
+.field input[type="file"] {
+  padding: 12px;
+  border-style: dashed;
+  background: hsl(var(--secondary) / 0.25);
+  cursor: pointer;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.span-3 {
+  grid-column: span 3;
+}
+
+.actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  padding-top: 14px;
+  padding-bottom: 6px;
+  background: linear-gradient(180deg, transparent, hsl(var(--background) / 0.7));
+}
+
+.actions .btn {
+  min-width: 160px;
+}
+
+@media (max-width: 720px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .span-2 {
+    grid-column: auto;
+  }
+  .span-3 {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .span-3 {
+    grid-column: span 2;
+  }
+}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="PortPolio — Discover amazing developer portfolios.">
+<title>PortPolio · Discover Developers</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}">
+<script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar-brand" href="{{ url_for('home') }}">&lt;/&gt; Git-Connect</a>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('home') }}">Home</a>
+    <a class="topbar-link" href="{{ url_for('developer') }}">Developer</a>
+    <a class="topbar-link" href="{{ url_for('user') }}">Discover</a>
+  </nav>
+
+  <div class="topbar-right">
+    <a href="{{ url_for('home') }}" class="topbar-btn topbar-btn-dev">Home</a>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner">
+    <div class="pill">Explore Amazing Portfolios</div>
+
+    <h1 class="hero-title">Discover Developer Portfolios</h1>
+    <h2 class="hero-subtitle">Find and view portfolios of talented developers <span class="cursor" aria-hidden="true">|</span></h2>
+
+    <ul class="features" aria-label="Features">
+      <li>Search by GitHub username</li>
+      <li>View project portfolios</li>
+      <li>Explore coding skills</li>
+      <li>Discover developers</li>
+    </ul>
+
+    <p class="hero-desc">
+      Browse through amazing developer portfolios, discover new projects, and connect with talented developers from around the world.
+    </p>
+
+    <div class="role-divider" aria-hidden="true"><span>Search for a Developer</span></div>
+    <p class="role-sub">Enter a GitHub username to view their portfolio</p>
+
+    <form method="GET" class="github-search" onsubmit="handleGitHubSearch(event)">
+      <input 
+        type="text" 
+        id="github_login_input"
+        placeholder="Enter GitHub username (e.g. torvalds, gvanrossum)"
+        class="github-input"
+        required
+      />
+      <button type="submit" class="btn btn-dev btn-wave">Discover Profile</button>
+    </form>
+
+    <script>
+      function handleGitHubSearch(event) {
+        event.preventDefault();
+        const username = document.getElementById('github_login_input').value.trim();
+        if (username) {
+          window.location.href = '/portfolio/' + username;
+        }
+      }
+    </script>
+  </div>
+</main>
+
+</body>
+</html>

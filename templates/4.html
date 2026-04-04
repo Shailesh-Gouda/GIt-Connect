@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PortPolio · Portfolio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='4.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='search.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='nav_titles.js') }}" defer></script>
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand topbar-brand--stack">
+    <a class="topbar-brand-home" href="{{ url_for('home') }}">
+      <span class="topbar-brand-top">&lt;/&gt;</span>
+      <span class="topbar-brand-name">{{ name or github_login }}</span>
+    </a>
+    <div class="topbar-brand-subnav" aria-label="Quick links">
+      <div
+        class="topbar-dd"
+        data-nav-titles
+        data-storage-key="gitconnect_project_titles"
+        data-base-url="{{ url_for('portfolio_projects', github_login=github_login) }}"
+        data-link-template="/portfolio/{{ github_login }}/projects/__TITLE__"
+        data-default-titles="HTML,CSS,JS,Full Stack,ML,Python"
+      >
+        <a class="topbar-brand-link topbar-dd-toggle" href="{{ url_for('portfolio_projects', github_login=github_login) }}">Projects</a>
+        <div class="topbar-dd-panel" role="menu" aria-label="Project titles">
+          <div class="topbar-dd-items" data-nav-titles-items></div>
+          <button class="topbar-dd-add" type="button" data-nav-titles-add aria-label="Add title">+ Add title</button>
+        </div>
+      </div>
+
+      <div
+        class="topbar-dd"
+        data-nav-titles
+        data-storage-key="gitconnect_note_titles"
+        data-base-url="{{ url_for('portfolio_notes', github_login=github_login) }}"
+        data-default-titles="DSA,Python,ML,Full Stack,JavaScript,System Design"
+      >
+        <a class="topbar-brand-link topbar-dd-toggle" href="{{ url_for('portfolio_notes', github_login=github_login) }}">Notes</a>
+        <div class="topbar-dd-panel" role="menu" aria-label="Note titles">
+          <div class="topbar-dd-items" data-nav-titles-items></div>
+          <button class="topbar-dd-add" type="button" data-nav-titles-add aria-label="Add title">+ Add title</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('home') }}">Home</a>
+    <a class="topbar-link" href="{{ url_for('developer') }}">Developer</a>
+    <a class="topbar-link" href="{{ url_for('portfolio_projects', github_login=github_login) }}">Projects</a>
+    <a class="topbar-link" href="{{ url_for('portfolio_notes', github_login=github_login) }}">Notes</a>
+    {% if resume_url %}
+      <a class="topbar-link" href="{{ resume_url }}" target="_blank" rel="noreferrer">Resume</a>
+    {% endif %}
+  </nav>
+
+  <div class="topbar-right">
+    <div class="topbar-search" role="search">
+      <input class="topbar-search-input" type="search" placeholder="Search..." aria-label="Search" data-topbar-search />
+      <span class="topbar-search-hint" aria-hidden="true">Ctrl K</span>
+    </div>
+
+    {% if can_edit %}
+      <div class="menu" data-menu>
+        <button
+          class="menu-toggle"
+          type="button"
+          data-menu-toggle
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M4 6.5a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm0 5.5a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Zm1 4.5a1 1 0 0 0 0 2h14a1 1 0 1 0 0-2H5Z"/>
+          </svg>
+        </button>
+
+        <div class="menu-panel" role="menu" aria-label="Account menu">
+          <a class="menu-item" role="menuitem" href="{{ url_for('dashboard', edit=1) }}">Edit details</a>
+          <a class="menu-item" role="menuitem" href="{{ url_for('logout') }}">Logout</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner portfolio">
+
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="flashes" aria-live="polite" aria-atomic="true">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="profile-hero profile-hero--center">
+      {% if profile_pic %}
+        <img src="{{ profile_pic }}" class="profile-img" alt="Profile photo" />
+      {% endif %}
+
+      <h1 class="profile-title">{{ name }}</h1>
+
+      
+
+      <ul class="features features--tagline" aria-label="Roles">
+        <li>Full Stack Developer</li>
+        <li>Data Scientist</li>
+        <li>Python Developer</li>
+      </ul>
+
+      <p class="profile-subtitle">{{ bio }}</p>
+
+      {% if can_edit %}
+        <a href="{{ url_for('dashboard', edit=1) }}" class="btn btn-dev btn-wave" aria-label="Explore Projects">
+          <span aria-hidden="true"></span> Explore Projects
+        </a>
+      {% endif %}
+    </section>
+
+    <section class="section-plain skills">
+      <h2>Skills</h2>
+      {% set skills_items = (skills or '').replace('\n', ',').split(',') %}
+
+      {% set skills_clean = [] %}
+      {% for s in skills_items %}
+        {% set t = s|trim %}
+        {% if t %}
+          {% set _ = skills_clean.append(t) %}
+        {% endif %}
+      {% endfor %}
+
+      {% if skills_clean|length == 0 %}
+        <p class="muted">No skills added yet.</p>
+      {% else %}
+        <div class="skills-marquee" aria-label="Skills marquee">
+          {% for dir, dur, delay in [('left', '220s', '-110s'), ('right', '250s', '-125s'), ('left', '235s', '-118s'), ('right', '265s', '-132s')] %}
+            {% set items = skills_clean %}
+            <div class="marquee" style="--dur: {{ dur }}; --delay: {{ delay }};">
+              <div class="marquee-track marquee-track--{{ dir }}">
+                <div class="marquee-group">
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                </div>
+                <div class="marquee-group" aria-hidden="true">
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                  {% for t in items %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="section-plain">
+      <h2>Languages</h2>
+      {% set languages_items = (languages or '').replace('\n', ',').split(',') %}
+      {% set languages_clean = [] %}
+      {% for s in languages_items %}
+        {% set t = s|trim %}
+        {% if t %}
+          {% set _ = languages_clean.append(t) %}
+        {% endif %}
+      {% endfor %}
+
+      {% if languages_clean|length == 0 %}
+        <p class="muted">No languages added yet.</p>
+      {% else %}
+        <div class="chips">
+          {% for t in languages_clean %}
+            <span class="chip">{{ t }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </section>
+
+    {% if hobbies %}
+      <section class="section-plain">
+        <h2>More About Me</h2>
+        {% if hobbies %}<p class="muted"><b>Hobbies:</b> {{ hobbies }}</p>{% endif %}
+      </section>
+    {% endif %}
+
+    {% if college or cgpa or degree or branch or graduation_year %}
+      <section class="section-plain">
+        <h2>Academics</h2>
+        {% if degree %}<p class="muted"><b>Degree:</b> {{ degree }}</p>{% endif %}
+        {% if branch %}<p class="muted"><b>Branch:</b> {{ branch }}</p>{% endif %}
+        {% if college %}<p class="muted"><b>College:</b> {{ college }}</p>{% endif %}
+        {% if graduation_year %}<p class="muted"><b>Graduation Year:</b> {{ graduation_year }}</p>{% endif %}
+        {% if cgpa %}<p class="muted"><b>CGPA:</b> {{ cgpa }}</p>{% endif %}
+      </section>
+    {% endif %}
+
+    {% if objective %}
+      <section class="section-plain">
+        <h2>Career Objective</h2>
+        <p>{{ objective }}</p>
+      </section>
+    {% endif %}
+
+    {% if why_me %}
+      <section class="section-plain">
+        <h2>Why Hire Me?</h2>
+        <div class="pre">{{ why_me }}</div>
+      </section>
+    {% endif %}
+
+    {% if achievements %}
+      <section class="section-plain">
+        <h2>Achievements</h2>
+        <div class="pre">{{ achievements }}</div>
+      </section>
+    {% endif %}
+
+    {% if certificates %}
+      <section class="section-plain">
+        <h2>Hobbies</h2>
+        <div class="pre">{{ certificates }}</div>
+      </section>
+    {% endif %}
+
+  </div>
+</main>
+
+{% set has_contact = email or phone or location or website or github_url or linkedin or instagram or twitter or leetcode_url or hackerrank_url or resume_url %}
+<footer class="site-footer" aria-label="Footer">
+  <div class="site-footer-head">
+    <div class="site-footer-brand">
+      <div class="site-footer-title">{{ name or github_login }}</div>
+      <div class="site-footer-sub">Let’s build something great.</div>
+    </div>
+    <a class="site-footer-top" href="{{ url_for('portfolio', github_login=github_login) }}">Back to top</a>
+  </div>
+
+  {% if not has_contact %}
+    <div class="site-footer-empty">No contact details added yet.</div>
+  {% else %}
+    <div class="site-footer-grid">
+      <section class="site-footer-col" aria-label="Address">
+        <h2 class="site-footer-h">Address</h2>
+        {% if location %}
+          <div class="site-footer-item"><span class="site-footer-k">Location</span><span class="site-footer-v">{{ location }}</span></div>
+        {% endif %}
+        {% if college %}
+          <div class="site-footer-item"><span class="site-footer-k">College</span><span class="site-footer-v">{{ college }}</span></div>
+        {% endif %}
+      </section>
+
+      <section class="site-footer-col" aria-label="Contact information">
+        <h2 class="site-footer-h">Contact</h2>
+        {% if email %}
+          <div class="site-footer-item"><span class="site-footer-k">Email</span><span class="site-footer-v">{{ email }}</span></div>
+        {% endif %}
+        {% if phone %}
+          <div class="site-footer-item"><span class="site-footer-k">Phone</span><span class="site-footer-v">{{ phone }}</span></div>
+        {% endif %}
+      </section>
+
+      <section class="site-footer-col" aria-label="Links">
+        <h2 class="site-footer-h">Links</h2>
+        <div class="site-footer-links">
+          {% if github_url %}<a class="site-footer-link" href="{{ github_url }}" target="_blank" rel="noreferrer">GitHub</a>{% endif %}
+          {% if website %}<a class="site-footer-link" href="{{ website }}" target="_blank" rel="noreferrer">Website</a>{% endif %}
+          {% if linkedin %}<a class="site-footer-link" href="{{ linkedin }}" target="_blank" rel="noreferrer">LinkedIn</a>{% endif %}
+          {% if instagram %}<a class="site-footer-link" href="{{ instagram }}" target="_blank" rel="noreferrer">Instagram</a>{% endif %}
+          {% if twitter %}<a class="site-footer-link" href="{{ twitter }}" target="_blank" rel="noreferrer">Twitter/X</a>{% endif %}
+          {% if leetcode_url %}<a class="site-footer-link" href="{{ leetcode_url }}" target="_blank" rel="noreferrer">LeetCode</a>{% endif %}
+          {% if hackerrank_url %}<a class="site-footer-link" href="{{ hackerrank_url }}" target="_blank" rel="noreferrer">HackerRank</a>{% endif %}
+          {% if resume_url %}<a class="site-footer-link" href="{{ resume_url }}" target="_blank" rel="noreferrer">Resume</a>{% endif %}
+        </div>
+      </section>
+    </div>
+  {% endif %}
+
+  <div class="site-footer-bottom">
+    <span>© {{ (name or github_login) }}</span>
+  </div>
+</footer>
+
+</body>
+</html>

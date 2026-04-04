@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PortPolio · Notes</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='4.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='search.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='nav_titles.js') }}" defer></script>
+</head>
+
+<body>
+<header class="topbar">
+  <div class="topbar-brand topbar-brand--stack">
+    <a class="topbar-brand-home" href="{{ url_for('home') }}">
+      <span class="topbar-brand-top">&lt;/&gt;</span>
+      <span class="topbar-brand-name">{{ name or github_login }}</span>
+    </a>
+    <div class="topbar-brand-subnav" aria-label="Quick links">
+      <div
+        class="topbar-dd"
+        data-nav-titles
+        data-storage-key="gitconnect_project_titles"
+        data-base-url="{{ url_for('portfolio_projects', github_login=github_login) }}"
+        data-link-template="/portfolio/{{ github_login }}/projects/__TITLE__"
+        data-default-titles="HTML,CSS,JS,Full Stack,ML,Python"
+      >
+        <a class="topbar-brand-link topbar-dd-toggle" href="{{ url_for('portfolio_projects', github_login=github_login) }}">Projects</a>
+        <div class="topbar-dd-panel" role="menu" aria-label="Project titles">
+          <div class="topbar-dd-items" data-nav-titles-items></div>
+          <button class="topbar-dd-add" type="button" data-nav-titles-add aria-label="Add title">+ Add title</button>
+        </div>
+      </div>
+
+      <div
+        class="topbar-dd"
+        data-nav-titles
+        data-storage-key="gitconnect_note_titles"
+        data-base-url="{{ url_for('portfolio_notes', github_login=github_login) }}"
+        data-default-titles="DSA,Python,ML,Full Stack,JavaScript,System Design"
+      >
+        <a class="topbar-brand-link topbar-dd-toggle" href="{{ url_for('portfolio_notes', github_login=github_login) }}">Notes</a>
+        <div class="topbar-dd-panel" role="menu" aria-label="Note titles">
+          <div class="topbar-dd-items" data-nav-titles-items></div>
+          <button class="topbar-dd-add" type="button" data-nav-titles-add aria-label="Add title">+ Add title</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('home') }}">Home</a>
+    <a class="topbar-link" href="{{ url_for('developer') }}">Developer</a>
+    <a class="topbar-link" href="{{ url_for('portfolio', github_login=github_login) }}">Portfolio</a>
+    <a class="topbar-link" href="{{ url_for('portfolio_projects', github_login=github_login) }}">Projects</a>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="topbar-search" role="search">
+      <input class="topbar-search-input" type="search" placeholder="Search..." aria-label="Search" data-topbar-search />
+      <span class="topbar-search-hint" aria-hidden="true">Ctrl K</span>
+    </div>
+
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner portfolio">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="flashes" aria-live="polite" aria-atomic="true">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <h2>Notes</h2>
+
+      {% for note in notes %}
+        <div class="item">
+          <div class="note-text">{{ note.content if note.content is defined else note }}</div>
+          {% if note.commit_url %}
+            <div class="note-meta"><a class="text-link" href="{{ note.commit_url }}" target="_blank" rel="noreferrer">View commit</a></div>
+          {% elif note.repo_name and note.file_path %}
+            <div class="note-meta">{{ note.repo_name }}/{{ note.file_path }}</div>
+          {% endif %}
+        </div>
+      {% else %}
+        <p class="muted">No notes yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

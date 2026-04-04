@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Git-Connect · Preview</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='4.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='nav_titles.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='code_copy.js') }}" defer></script>
+</head>
+
+<body class="page-code">
+<header class="topbar">
+  <div class="topbar-brand topbar-brand--stack">
+    <a class="topbar-brand-home" href="{{ url_for('home') }}">
+      <span class="topbar-brand-top">&lt;/&gt;</span>
+      <span class="topbar-brand-name">{{ name or github_login }}</span>
+    </a>
+  </div>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('view_project_code', github_login=github_login, category=category, project_id=project_id) }}">Back to code</a>
+    {% if pages_url %}
+      <a class="topbar-link" href="{{ pages_url }}" target="_blank" rel="noreferrer">Live</a>
+    {% endif %}
+  </nav>
+
+  <div class="topbar-right">
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner portfolio">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="flashes" aria-live="polite" aria-atomic="true">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="code-layout">
+      <aside class="code-sidebar">
+        <h2 class="code-title">{{ project_name }}</h2>
+        <p class="muted code-sub">Preview HTML</p>
+
+        <form method="GET" action="{{ url_for('preview_project', github_login=github_login, category=category, project_id=project_id) }}">
+          <select name="file" class="code-select" onchange="this.form.submit()">
+            {% for f in html_files %}
+              <option value="{{ f }}" {% if f == selected_file %}selected{% endif %}>{{ f.replace(code_path + '/', '') if f.startswith(code_path + '/') else f }}</option>
+            {% endfor %}
+          </select>
+          <noscript><button class="course-btn" type="submit">Open</button></noscript>
+        </form>
+
+        {% if selected_file %}
+          <a class="course-btn code-gh" href="{{ url_for('view_project_code', github_login=github_login, category=category, project_id=project_id, file=selected_file) }}">Edit & Commit</a>
+        {% endif %}
+        {% if pages_url %}
+          <a class="course-btn code-live" href="{{ pages_url }}" target="_blank" rel="noreferrer">Open Live URL</a>
+        {% endif %}
+        {% if can_edit %}
+          <form method="POST" action="{{ url_for('deploy_project', github_login=github_login, category=category, project_id=project_id) }}">
+            <button class="course-btn code-deploy" type="submit">Deploy</button>
+          </form>
+          {% if pages_url %}
+            <div class="deploy-url">
+              <a class="deploy-link" href="{{ pages_url }}" target="_blank" rel="noreferrer" id="deploy-url">{{ pages_url }}</a>
+              <button class="deploy-copy" type="button" data-copy-text data-copy-target="#deploy-url">Copy</button>
+            </div>
+          {% endif %}
+        {% endif %}
+      </aside>
+
+      <section class="code-main">
+        {% if selected_file %}
+          <iframe
+            class="preview-frame"
+            title="Preview"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-modals"
+            src="{{ url_for('preview_project_render', github_login=github_login, category=category, project_id=project_id, file=selected_file) }}"
+          ></iframe>
+        {% else %}
+          <div class="code-head"><div class="mono code-file">No HTML file found</div></div>
+          <div style="padding:14px">Add an <span class="mono">index.html</span> (or any .html file) to preview.</div>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

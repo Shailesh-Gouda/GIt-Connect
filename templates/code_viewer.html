@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Git-Connect · Code Viewer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='4.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='search.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='nav_titles.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='code_copy.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='code_fullscreen.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='code_split.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='code_live_preview.js') }}" defer></script>
+</head>
+
+<body
+  class="page-code"
+  data-code-path="{{ code_path }}"
+  data-selected-file="{{ selected_file or '' }}"
+  data-preview-asset="{{ url_for('preview_project_asset', github_login=github_login, category=category, project_id=project_id) }}"
+>
+<header class="topbar">
+  <div class="topbar-brand topbar-brand--stack">
+    <a class="topbar-brand-home" href="{{ url_for('home') }}">
+      <span class="topbar-brand-top">&lt;/&gt;</span>
+      <span class="topbar-brand-name">{{ name or github_login }}</span>
+    </a>
+    <div class="topbar-brand-subnav" aria-label="Quick links">
+      <div
+        class="topbar-dd"
+        data-nav-titles
+        data-storage-key="gitconnect_project_titles"
+        data-base-url="{{ url_for('portfolio_projects', github_login=github_login) }}"
+        data-link-template="/portfolio/{{ github_login }}/projects/__TITLE__"
+        data-default-titles="HTML,CSS,JS,Full Stack,ML,Python"
+      >
+        <a class="topbar-brand-link topbar-dd-toggle" href="{{ url_for('portfolio_projects', github_login=github_login) }}">Projects</a>
+        <div class="topbar-dd-panel" role="menu" aria-label="Project titles">
+          <div class="topbar-dd-items" data-nav-titles-items></div>
+          <button class="topbar-dd-add" type="button" data-nav-titles-add aria-label="Add title">+ Add title</button>
+        </div>
+      </div>
+
+      <div
+        class="topbar-dd"
+        data-nav-titles
+        data-storage-key="gitconnect_note_titles"
+        data-base-url="{{ url_for('portfolio_notes', github_login=github_login) }}"
+        data-default-titles="DSA,Python,ML,Full Stack,JavaScript,System Design"
+      >
+        <a class="topbar-brand-link topbar-dd-toggle" href="{{ url_for('portfolio_notes', github_login=github_login) }}">Notes</a>
+        <div class="topbar-dd-panel" role="menu" aria-label="Note titles">
+          <div class="topbar-dd-items" data-nav-titles-items></div>
+          <button class="topbar-dd-add" type="button" data-nav-titles-add aria-label="Add title">+ Add title</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('portfolio_projects_category', github_login=github_login, category=category) }}">Back</a>
+    {% if repo_url %}
+      <a class="topbar-link" href="{{ repo_url }}" target="_blank" rel="noreferrer">GitHub Repo</a>
+    {% endif %}
+    {% if is_web_file %}
+      <a class="topbar-link" href="{{ url_for('preview_project', github_login=github_login, category=category, project_id=project_id, file=selected_file) }}">Preview</a>
+    {% endif %}
+    {% if pages_url %}
+      <a class="topbar-link" href="{{ pages_url }}" target="_blank" rel="noreferrer">Live</a>
+    {% endif %}
+  </nav>
+
+  <div class="topbar-right">
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner portfolio">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="flashes" aria-live="polite" aria-atomic="true">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="code-layout">
+      <aside class="code-sidebar">
+        <h2 class="code-title">{{ project_name }}</h2>
+        <p class="muted code-sub">Choose a file to view</p>
+
+        <form method="GET" action="{{ url_for('view_project_code', github_login=github_login, category=category, project_id=project_id) }}">
+          <select name="file" class="code-select" onchange="this.form.submit()">
+            {% for f in files %}
+              <option value="{{ f }}" {% if f == selected_file %}selected{% endif %}>{{ f.replace(code_path + '/', '') if f.startswith(code_path + '/') else f }}</option>
+            {% endfor %}
+          </select>
+          <noscript><button class="course-btn" type="submit">Open</button></noscript>
+        </form>
+
+        {% if repo_url %}
+          <a class="course-btn code-gh" href="{{ repo_url }}" target="_blank" rel="noreferrer">Open on GitHub</a>
+        {% endif %}
+        {% if pages_url %}
+          <a class="course-btn code-live" href="{{ pages_url }}" target="_blank" rel="noreferrer">Open Live URL</a>
+        {% endif %}
+        {% if can_edit %}
+          <form method="POST" action="{{ url_for('deploy_project', github_login=github_login, category=category, project_id=project_id) }}">
+            <button class="course-btn code-deploy" type="submit">Deploy</button>
+          </form>
+          {% if pages_url %}
+            <div class="deploy-url">
+              <a class="deploy-link" href="{{ pages_url }}" target="_blank" rel="noreferrer" id="deploy-url">{{ pages_url }}</a>
+              <button class="deploy-copy" type="button" data-copy-text data-copy-target="#deploy-url">Copy</button>
+            </div>
+          {% endif %}
+
+          <details class="code-manage">
+            <summary class="course-btn">Manage files</summary>
+            <div class="code-manage-panel">
+              <form class="form" method="POST" action="{{ url_for('add_project_file', github_login=github_login, category=category, project_id=project_id) }}">
+                <div class="field">
+                  <label>New file</label>
+                  <input type="text" name="new_file" placeholder="e.g. index.html" required />
+                </div>
+                <div class="field">
+                  <label>Content (optional)</label>
+                  <textarea name="new_content" rows="6" placeholder="Start coding..."></textarea>
+                </div>
+                <div class="field">
+                  <label>Commit message (optional)</label>
+                  <input type="text" name="message" placeholder="Add new file" />
+                </div>
+                <button class="course-btn" type="submit">Add file</button>
+              </form>
+
+              {% if selected_file %}
+                <hr class="code-manage-sep" />
+                <form class="form" method="POST" action="{{ url_for('rename_project_file', github_login=github_login, category=category, project_id=project_id) }}">
+                  <input type="hidden" name="old_path" value="{{ selected_file }}" />
+                  <div class="field">
+                    <label>Rename selected file</label>
+                    <input type="text" name="new_path" placeholder="e.g. app2.py" required />
+                  </div>
+                  <div class="field">
+                    <label>Commit message (optional)</label>
+                    <input type="text" name="message" placeholder="Rename file" />
+                  </div>
+                  <button class="course-btn" type="submit">Rename</button>
+                </form>
+
+                <hr class="code-manage-sep" />
+                <form class="form" method="POST" action="{{ url_for('delete_project_file', github_login=github_login, category=category, project_id=project_id) }}" onsubmit="return confirm('Delete this file?');">
+                  <input type="hidden" name="file_path" value="{{ selected_file }}" />
+                  <div class="field">
+                    <label>Delete selected file</label>
+                    <input type="text" value="{{ selected_file.replace(code_path + '/', '') if selected_file.startswith(code_path + '/') else selected_file }}" readonly />
+                  </div>
+                  <div class="field">
+                    <label>Commit message (optional)</label>
+                    <input type="text" name="message" placeholder="Delete file" />
+                  </div>
+                  <button class="course-btn course-btn--danger" type="submit">Delete file</button>
+                </form>
+              {% endif %}
+
+              <hr class="code-manage-sep" />
+              <form class="form" method="POST" action="{{ url_for('update_project_visibility', github_login=github_login, category=category, project_id=project_id) }}">
+                <div class="field">
+                  <label>Visibility</label>
+                  <select name="visibility">
+                    <option value="public" {% if (visibility or 'public') == 'public' %}selected{% endif %}>Public</option>
+                    <option value="private" {% if (visibility or 'public') == 'private' %}selected{% endif %}>Private</option>
+                  </select>
+                </div>
+                <label class="danger-check">
+                  <input type="checkbox" name="move_repo" value="1" checked />
+                  Move code on GitHub (recommended)
+                </label>
+                <label class="danger-check">
+                  <input type="checkbox" name="delete_source" value="1" />
+                  Delete old copy from GitHub
+                </label>
+                <button class="course-btn" type="submit">Update visibility</button>
+                <p class="hint">Private projects hide code/preview from visitors in this site.</p>
+              </form>
+            </div>
+          </details>
+        {% endif %}
+      </aside>
+
+      <section class="code-main" data-code-main>
+        <div class="code-head">
+          <div class="mono code-file">{{ selected_file or '' }}</div>
+          <div class="code-head-actions">
+            {% if has_preview %}
+              <a class="code-preview" href="{{ url_for('preview_project', github_login=github_login, category=category, project_id=project_id, file=preview_file) }}">Preview</a>
+            {% endif %}
+            {% if has_preview and preview_target %}
+              <button class="code-split" type="button" data-code-split aria-label="Split preview" aria-pressed="false">⧉</button>
+            {% endif %}
+            <button class="code-fullscreen" type="button" data-code-fullscreen aria-label="Full screen" aria-pressed="false">⤢</button>
+            <button class="code-copy" type="button" data-copy-code>Copy</button>
+          </div>
+        </div>
+        <div class="code-workspace" data-code-workspace>
+          <div class="code-pane">
+            {% if can_edit and selected_file %}
+              <form class="code-edit" method="POST" action="{{ url_for('commit_project_code', github_login=github_login, category=category, project_id=project_id) }}">
+                <input type="hidden" name="file_path" value="{{ selected_file }}" />
+                <div class="field">
+                  <label>Edit code</label>
+                  <textarea name="content" rows="18">{% if content is not none %}{{ content }}{% endif %}</textarea>
+                </div>
+                <div class="field field--commit">
+                  <label class="field-label">Commit message</label>
+                  <input type="text" name="message" placeholder="what you commit" class="field-input commit-input" />
+                </div>
+                <button class="course-btn commit-btn" type="submit">Commit</button>
+                <p class="hint">Commits directly to GitHub.</p>
+              </form>
+            {% else %}
+              <pre class="code-pre" data-code-pre><code>{% if content is not none %}{{ content }}{% else %}Select a file to view.{% endif %}</code></pre>
+            {% endif %}
+          </div>
+
+          {% if has_preview and preview_target %}
+            <div class="code-split-preview" aria-label="Preview">
+              <iframe
+                class="code-split-frame"
+                title="Preview"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-modals"
+                data-preview-frame
+                src="{{ url_for('preview_project_render', github_login=github_login, category=category, project_id=project_id, file=preview_target) }}"
+              ></iframe>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

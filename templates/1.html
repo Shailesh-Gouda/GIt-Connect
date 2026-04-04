@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="PortPolio — choose your role to continue.">
+<title>PortPolio · Choose Role</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}">
+<script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar-brand" href="{{ url_for('home') }}">&lt;/&gt; Git-Connect</a>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('home') }}">Home</a>
+    <a class="topbar-link" href="{{ url_for('developer') }}">Developer</a>
+    <a class="topbar-link" href="{{ url_for('user') }}">User</a>
+  </nav>
+
+  <div class="topbar-right">
+    <a href="{{ url_for('developer') }}" class="topbar-btn topbar-btn-dev">Developer</a>
+    <a href="{{ url_for('user') }}" class="topbar-btn topbar-btn-user">User</a>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="flashes" aria-live="polite" aria-atomic="true">
+          {% for category, message in messages %}
+            <div
+              class="flash flash-{{ category }}"
+              role="{{ 'alert' if category == 'error' else 'status' }}"
+            >{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="pill">Make Your Profile Pro</div>
+
+    <h1 class="hero-title">Welcome to Git Connect</h1>
+    <h2 class="hero-subtitle">Build Your Developer Identity <span class="cursor" aria-hidden="true">|</span></h2>
+
+    <ul class="features" aria-label="What you can do">
+      <li>Add your projects</li>
+      <li>Add your notes</li>
+      <li>Share your work</li>
+      <li>Let’s begin</li>
+    </ul>
+
+    <p class="hero-desc">
+      Create your portfolio, showcase your projects, and share your coding journey with the world — all in one place.
+    </p>
+
+    <div class="role-divider" aria-hidden="true"><span>Choose your role</span></div>
+    <p class="role-sub">Select Developer or User to continue</p>
+
+    <div class="hero-actions">
+      <a href="{{ url_for('developer') }}" class="btn btn-dev btn-wave" aria-label="Continue as Developer">
+        <span aria-hidden="true">👨‍💻</span> Developer
+      </a>
+      <a href="{{ url_for('user') }}" class="btn btn-user btn-wave" aria-label="Continue as User">
+        <span aria-hidden="true">👀</span> User
+      </a>
+    </div>
+
+    <div class="role-divider" aria-hidden="true"><span>Or view a profile</span></div>
+    <p class="role-sub">Enter GitHub username to view their portfolio</p>
+
+    <form method="GET" class="github-search" onsubmit="handleGitHubSearch(event)">
+      <input 
+        type="text" 
+        id="github_login_input"
+        placeholder="Enter GitHub username"
+        class="github-input"
+        required
+      />
+      <button type="submit" class="btn btn-dev btn-wave">View Profile</button>
+    </form>
+
+    <script>
+      function handleGitHubSearch(event) {
+        event.preventDefault();
+        const username = document.getElementById('github_login_input').value.trim();
+        if (username) {
+          window.location.href = '/portfolio/' + username;
+        }
+      }
+    </script>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Developer Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="topbar-brand" href="{{ url_for('home') }}">&lt;/&gt;</a>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('home') }}">Home</a>
+  </nav>
+
+  <div class="topbar-right">
+    <a href="{{ url_for('home') }}" class="topbar-btn topbar-btn-dev">Back</a>
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner hero-inner--narrow">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="flashes" aria-live="polite" aria-atomic="true">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+      <h1 class="card-title">Developer Login</h1>
+      <p class="card-subtitle">Login using your GitHub account</p>
+
+      {% if oauth_configured %}
+        <a href="{{ url_for('login') }}" class="btn btn-dev btn-wave">🔐 Login with GitHub</a>
+        <p class="hint">Scopes: <span class="mono">read:user user:email repo</span>. If you still get a 403, click Logout and login again.</p>
+      {% else %}
+        <p class="card-warn">
+          GitHub login not configured. Set <b>GITHUB_CLIENT_ID</b> and <b>GITHUB_CLIENT_SECRET</b> (they must be different) then restart.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Developer Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='1.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='3.css') }}">
+    <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+</head>
+<body class="page-form">
+
+<header class="topbar">
+  <a class="topbar-brand" href="{{ url_for('home') }}">&lt;/&gt;</a>
+
+  <nav class="topbar-nav" aria-label="Primary">
+    <a class="topbar-link" href="{{ url_for('home') }}">Home</a>
+    <a class="topbar-link" href="{{ url_for('developer') }}">Developer</a>
+  </nav>
+
+  <div class="topbar-right">
+    {% if edit_mode and existing and existing.get('github_login') %}
+      <a class="topbar-btn topbar-btn-dev" href="{{ url_for('portfolio', github_login=existing.get('github_login')) }}">Back</a>
+    {% else %}
+      <a class="topbar-btn topbar-btn-dev" href="{{ url_for('home') }}">Back</a>
+    {% endif %}
+
+    <a class="topbar-btn topbar-btn-user" href="{{ url_for('logout') }}">Logout</a>
+
+    <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="true">
+      <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z"/>
+      </svg>
+      <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M12 18a6 6 0 1 1 0-12a6 6 0 0 1 0 12Zm0-16a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1Zm0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm16 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1ZM4.22 4.22a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42L4.22 5.64a1 1 0 0 1 0-1.42Zm12.3 12.3a1 1 0 0 1 1.42 0l1.42 1.42a1 1 0 0 1-1.42 1.42l-1.42-1.42a1 1 0 0 1 0-1.42ZM19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0ZM7.06 16.94a1 1 0 0 1 0 1.42l-1.42 1.42a1 1 0 0 1-1.42-1.42l1.42-1.42a1 1 0 0 1 1.42 0Z"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<main class="hero" role="main">
+  <div class="hero-inner hero-inner--form">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="flashes" aria-live="polite" aria-atomic="true">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="form-header">
+      <h1 class="form-title">Developer Details</h1>
+      <p class="form-subtitle">Add as much as you want — you can edit later.</p>
+    </div>
+
+    <form class="form" action="{{ url_for('save') }}" method="POST" enctype="multipart/form-data">
+
+        {% if edit_mode %}
+          <input type="hidden" name="edit_mode" value="1">
+        {% endif %}
+
+        <section class="section">
+        <h2 class="section-title">Contact</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>GitHub Username</label>
+            <input
+              type="text"
+              name="github"
+              placeholder="e.g. octocat"
+              value="{{ ((existing.get('github_login') or '') if existing else (user.get('login') if user else '')) }}"
+            >
+          </div>
+          <div class="field">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="e.g. John Doe" value="{{ (existing.get('name') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="e.g. you@gmail.com" value="{{ (existing.get('email') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="tel" name="phone" placeholder="e.g. +91 98765 43210" value="{{ (existing.get('phone') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <input type="text" name="location" placeholder="e.g. Pune, India" value="{{ (existing.get('location') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Website</label>
+            <input type="url" name="website" placeholder="https://..." value="{{ (existing.get('website') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>GitHub Profile URL</label>
+            <input type="url" name="github_url" placeholder="https://github.com/..." value="{{ (existing.get('github_url') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>LinkedIn</label>
+            <input type="url" name="linkedin" placeholder="https://linkedin.com/in/..." value="{{ (existing.get('linkedin') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Instagram</label>
+            <input type="url" name="instagram" placeholder="https://instagram.com/..." value="{{ (existing.get('instagram') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Twitter / X</label>
+            <input type="url" name="twitter" placeholder="https://x.com/..." value="{{ (existing.get('twitter') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>LeetCode</label>
+            <input type="url" name="leetcode_url" placeholder="https://leetcode.com/..." value="{{ (existing.get('leetcode_url') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>HackerRank</label>
+            <input type="url" name="hackerrank_url" placeholder="https://hackerrank.com/..." value="{{ (existing.get('hackerrank_url') or '') if existing else '' }}">
+          </div>
+          <div class="field span-3">
+            <label>Resume (optional)</label>
+            <input type="file" name="resume_file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+            <div class="hint">Upload PDF/DOC/DOCX.</div>
+          </div>
+          <div class="field span-3">
+            <label>Profile Photo (optional)</label>
+            <input type="file" name="profile_pic_file" accept="image/*">
+            <div class="hint">Upload a JPG/PNG file.</div>
+          </div>
+        </div>
+        </section>
+
+        <section class="section">
+        <h2 class="section-title">About</h2>
+        <div class="form-grid">
+          <div class="field span-3">
+            <label>Tagline</label>
+            <input type="text" name="tagline" placeholder="e.g. Full‑stack developer | Open-source lover" value="{{ (existing.get('tagline') or '') if existing else '' }}">
+          </div>
+          <div class="field span-3">
+            <label>Bio</label>
+            <textarea name="bio" placeholder="A short intro about you...">{{ (existing.get('bio') or '') if existing else '' }}</textarea>
+          </div>
+          <div class="field span-3">
+            <label>Career Objective</label>
+            <textarea name="objective" placeholder="Your career objective...">{{ (existing.get('objective') or '') if existing else '' }}</textarea>
+          </div>
+          <div class="field span-3">
+            <label>Why Hire Me? (optional)</label>
+            <textarea name="why_me" placeholder="Write 3–5 points...">{{ (existing.get('why_me') or '') if existing else '' }}</textarea>
+          </div>
+          <div class="field span-3">
+            <label>Skills</label>
+            <textarea name="skills" placeholder="e.g. Python, Flask, React, SQL">{{ (existing.get('skills') or '') if existing else '' }}</textarea>
+          </div>
+          <div class="field">
+            <label>Languages</label>
+            <input type="text" name="languages" placeholder="e.g. English, Hindi" value="{{ (existing.get('languages') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Hobbies</label>
+            <input type="text" name="hobbies" placeholder="e.g. Music, Gym, Chess" value="{{ (existing.get('hobbies') or '') if existing else '' }}">
+          </div>
+          <div class="field span-3">
+            <label>Achievements (optional)</label>
+            <textarea name="achievements" placeholder="List your achievements...">{{ (existing.get('achievements') or '') if existing else '' }}</textarea>
+          </div>
+          <div class="field span-3">
+            <label>Certificates (optional)</label>
+            <textarea name="certificates" placeholder="List your certificates...">{{ (existing.get('certificates') or '') if existing else '' }}</textarea>
+          </div>
+        </div>
+        </section>
+
+        <section class="section">
+        <h2 class="section-title">Academics</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>College</label>
+            <input type="text" name="college" placeholder="College / University" value="{{ (existing.get('college') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>CGPA</label>
+            <input type="text" name="cgpa" placeholder="e.g. 8.6/10" value="{{ (existing.get('cgpa') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Degree</label>
+            <input type="text" name="degree" placeholder="e.g. B.Tech" value="{{ (existing.get('degree') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Branch</label>
+            <input type="text" name="branch" placeholder="e.g. Computer Science" value="{{ (existing.get('branch') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Graduation Year</label>
+            <input type="text" name="graduation_year" placeholder="e.g. 2027" value="{{ (existing.get('graduation_year') or '') if existing else '' }}">
+          </div>
+        </div>
+        </section>
+
+        <section class="section section-last">
+        <h2 class="section-title">Project</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Project Name (optional)</label>
+            <input type="text" name="project_name" placeholder="e.g. Portfolio Builder" value="{{ (existing.get('project_name') or '') if existing else '' }}">
+          </div>
+          <div class="field">
+            <label>Project Description (optional)</label>
+            <input type="text" name="project_desc" placeholder="Short description" value="{{ (existing.get('project_desc') or '') if existing else '' }}">
+          </div>
+          <div class="field span-3">
+            <label>Notes</label>
+            <textarea name="notes" placeholder="Write your notes...">{{ (existing.get('notes') or '') if existing else '' }}</textarea>
+          </div>
+        </div>
+        </section>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-dev btn-wave">Save</button>
+        </div>
+
+    </form>
+  </div>
+</main>
+
+</body>
+</html>
