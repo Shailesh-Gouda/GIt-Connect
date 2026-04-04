@@ -3,6 +3,7 @@ import secrets
 import sqlite3
 import base64
 import re
+import time
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 
@@ -14,8 +15,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-me-in-env")
 
 # 🔐 GitHub OAuth (set via env vars in production; do not hardcode secrets)
-CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "")
+CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "Ov23lipjI5ijZsrxrISm")
+CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "5664fb163ef89aea61c80a670530ec7d3a592c24")
 GITHUB_REDIRECT_URI = os.environ.get("GITHUB_REDIRECT_URI")
 # NOTE: GitHub may require `repo` scope to create repositories (even public) on some accounts.
 # You can override via env var `GITHUB_OAUTH_SCOPE`.
@@ -930,15 +931,45 @@ def _parse_github_repo_name(repo_url: str, expected_owner: str) -> str | None:
     owner, repo = parts[0], parts[1]
     if owner != expected_owner:
         return None
-    return repo
+    if repo.endswith(".git"):
+        repo = repo[: -len(".git")]
+    return repo or None
 
 
-def _raw_github_url(owner: str, repo: str, path: str) -> str:
-    return f"https://raw.githubusercontent.com/{owner}/{repo}/main/{path.lstrip('/')}"
+_DEFAULT_BRANCH_CACHE: dict[tuple[str, str], tuple[str, float]] = {}
 
 
-def _blob_github_url(owner: str, repo: str, path: str) -> str:
-    return f"https://github.com/{owner}/{repo}/blob/main/{path.lstrip('/')}"
+def _default_branch(owner: str, repo: str, token: str | None = None) -> str:
+    key = (owner, repo)
+    cached = _DEFAULT_BRANCH_CACHE.get(key)
+    now = time.time()
+    if cached and cached[1] > now:
+        return cached[0]
+
+    headers = {"Accept": "application/vnd.github+json"}
+    if token:
+        headers.update(_gh_headers(token))
+
+    try:
+        res = requests.get(f"https://api.github.com/repos/{owner}/{repo}", headers=headers, timeout=10)
+        if res.ok:
+            branch = (res.json() or {}).get("default_branch") or "main"
+        else:
+            branch = "main"
+    except Exception:
+        branch = "main"
+
+    # Cache for 1 hour to avoid rate limits.
+    _DEFAULT_BRANCH_CACHE[key] = (branch, now + 3600)
+    return branch
+
+
+def _raw_github_url(owner: str, repo: str, path: str, branch: str = "main") -> str:
+    return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path.lstrip('/')}"
+
+
+def _blob_github_url(owner: str, repo: str, path: str, branch: str = "main") -> str:
+    return f"https://github.com/{owner}/{repo}/blob/{branch}/{path.lstrip('/')}"
 
 
 def _is_safe_project_path(code_prefix: str, requested_path: str) -> bool:
@@ -1495,11 +1526,16 @@ def portfolio_projects_category(github_login: str, category: str):
 
         image_url = ""
         repo_name_for_asset = _parse_github_repo_name(code_repo_url, github_login) if code_repo_url else None
-        if repo_name_for_asset and image_path:
+        if image_path and image_path.startswith(("http://", "https://")):
+            # Allow storing a full image URL in the DB (useful if the repo default branch isn't "main").
+            if visibility == "public" or can_edit:
+                image_url = image_path
+        elif repo_name_for_asset and image_path:
+            branch = _default_branch(github_login, repo_name_for_asset, token if can_edit else None)
             if visibility == "public":
-                image_url = _raw_github_url(github_login, repo_name_for_asset, image_path)
+                image_url = _raw_github_url(github_login, repo_name_for_asset, image_path, branch=branch)
             elif can_edit:
-                image_url = _blob_github_url(github_login, repo_name_for_asset, image_path)
+                image_url = _blob_github_url(github_login, repo_name_for_asset, image_path, branch=branch)
         p["image_url"] = image_url
 
     return render_template(

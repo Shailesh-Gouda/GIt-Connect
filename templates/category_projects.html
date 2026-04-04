@@ -112,7 +112,7 @@
           <article class="course-card item">
             <div class="course-media">
               {% if project.image_url %}
-                <img class="course-img" src="{{ project.image_url }}" alt="Project cover image" loading="lazy" />
+                <img class="course-img" src="{{ project.image_url }}" alt="Project cover image" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous" />
               {% else %}
                 <div class="course-img course-img--placeholder" aria-hidden="true"></div>
               {% endif %}
