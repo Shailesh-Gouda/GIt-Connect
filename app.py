@@ -217,6 +217,11 @@ def _ensure_columns(conn: sqlite3.Connection, table: str, columns: dict[str, str
         conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {col_type}")
 
 
+# Ensure the DB schema exists even when the app is started via `gunicorn app:app`
+# (i.e., when `__main__` does not run).
+_init_db()
+
+
 def _load_portfolio(github_login: str) -> dict | None:
     with _db() as conn:
         row = conn.execute(
