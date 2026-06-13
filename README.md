@@ -32,3 +32,11 @@ gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
 ### Note about SQLite
 
 This app uses `portpolio.db` (SQLite). On Render, the filesystem is ephemeral unless you attach a persistent disk.
+Use the included `render.yaml` Blueprint or set:
+
+- `DATA_DIR=/var/data`
+- `DATABASE_PATH=/var/data/portpolio.db`
+- `UPLOAD_FOLDER=/var/data/uploads`
+- `UPLOAD_URL_PATH=/uploads`
+
+If the database is reset, public category projects can be restored from the GitHub repo folders under `projects/` when you open that category page again.

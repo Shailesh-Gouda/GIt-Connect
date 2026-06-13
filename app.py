@@ -295,6 +295,99 @@ def _add_project(
         )
 
 
+def _project_exists(github_login: str, category: str, code_repo_url: str, code_path: str) -> bool:
+    with _db() as conn:
+        row = conn.execute(
+            """
+            SELECT 1
+            FROM projects
+            WHERE github_login = ? AND category = ? AND code_repo_url = ? AND code_path = ?
+            LIMIT 1
+            """,
+            (github_login, category, code_repo_url, code_path),
+        ).fetchone()
+    return row is not None
+
+
+def _read_project_readme_summary(token: str | None, owner: str, repo_name: str, readme_path: str) -> tuple[str | None, str | None]:
+    ok, text, _ = _gh_get_text_file(token, owner, repo_name, readme_path)
+    if not ok or not text:
+        return None, None
+
+    lines = [line.strip() for line in text.splitlines()]
+    title = None
+    description = None
+
+    for line in lines:
+        if line.startswith("# "):
+            title = line[2:].strip() or None
+            break
+
+    for line in lines:
+        if not line or line.startswith("#") or line.startswith("Category:") or line.startswith("_"):
+            continue
+        description = line
+        break
+
+    return title, description
+
+
+def _restore_public_category_projects_from_github(
+    token: str | None,
+    github_login: str,
+    category: str,
+) -> int:
+    repo_name = _repo_slug(category)
+    if not repo_name:
+        return 0
+
+    ok, files, _ = _gh_list_files_in_prefix(token, github_login, repo_name, "projects")
+    if not ok or not files:
+        return 0
+
+    repo_url = f"https://github.com/{github_login}/{repo_name}"
+    project_dirs = sorted(
+        {
+            path.split("/", 2)[1]
+            for path in files
+            if path.startswith("projects/") and len(path.split("/", 2)) >= 3
+        }
+    )
+
+    restored = 0
+    for project_dir in project_dirs:
+        code_path = f"projects/{project_dir}"
+        if _project_exists(github_login, category, repo_url, code_path):
+            continue
+
+        readme_path = f"{code_path}/README.md"
+        title, description = _read_project_readme_summary(token, github_login, repo_name, readme_path)
+        if not title:
+            title = project_dir.replace("-", " ").replace("_", " ").title()
+
+        image_path = ""
+        for path in files:
+            lower = path.lower()
+            if path.startswith(code_path + "/cover.") and lower.endswith((".png", ".jpg", ".jpeg", ".webp", ".gif")):
+                image_path = path
+                break
+
+        _add_project(
+            github_login,
+            title,
+            description,
+            None,
+            category=category,
+            visibility="public",
+            code_repo_url=repo_url,
+            code_path=code_path,
+            image_path=image_path or None,
+        )
+        restored += 1
+
+    return restored
+
+
 def _list_notes(github_login: str) -> list[dict]:
     with _db() as conn:
         rows = conn.execute(
@@ -1337,8 +1430,19 @@ def save():
     if (not is_edit_mode) and token and project_name:
         repo_name = _repo_slug(project_name)
         if repo_name:
-            ok, created_repo_url, err = _gh_create_repo(token, repo_name, description=project_desc)
+            ok, created_repo_url, err = _gh_ensure_repo(token, github_login, repo_name, description=project_desc)
             if ok and created_repo_url:
+                readme = _render_standalone_project_readme(project_name, project_desc)
+                ok_readme, _, err_readme = _gh_upsert_file(
+                    token,
+                    github_login,
+                    repo_name,
+                    "README.md",
+                    readme,
+                    f"Add {project_name}",
+                )
+                if not ok_readme:
+                    flash(err_readme or "Project repo created, but README upload failed.", "error")
                 repo_url = created_repo_url
                 _add_project(github_login, project_name, project_desc, repo_url)
             else:
@@ -1553,12 +1657,22 @@ def portfolio_projects_category(github_login: str, category: str):
     if not category_name:
         return redirect(url_for("portfolio_projects", github_login=github_login))
 
-    projects = _list_projects(github_login, category=category_name)
-
     token = session.get("token")
     can_edit = session.get("github_login") == github_login and token is not None
 
     repo_name = _repo_slug(category_name)
+    projects = _list_projects(github_login, category=category_name)
+    if not projects and repo_name:
+        restored_count = _restore_public_category_projects_from_github(
+            token if can_edit else None,
+            github_login,
+            category_name,
+        )
+        if restored_count:
+            projects = _list_projects(github_login, category=category_name)
+            if can_edit:
+                flash(f"Restored {restored_count} project(s) from GitHub after server restart.", "info")
+
     repo_url = None
     if can_edit and repo_name:
         ok, created_url, err = _gh_ensure_repo(token, github_login, repo_name, description=f"{category_name} projects")
@@ -2914,6 +3028,22 @@ def _render_project_readme(category: str, name: str, description: str) -> str:
     return "\n".join(lines)
 
 
+def _render_standalone_project_readme(name: str, description: str | None) -> str:
+    title = (name or "Project").strip()
+    desc = (description or "").strip()
+    lines = [
+        f"# {title}",
+        "",
+    ]
+    if desc:
+        lines += [desc, ""]
+    lines += [
+        "_This repo was created from Git-Connect._",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _render_category_readme(category: str, projects: list[dict], owner: str, category_repo: str) -> str:
     title = (category or "Projects").strip()
     base_repo_url = f"https://github.com/{owner}/{category_repo}"
@@ -3015,13 +3145,25 @@ def add_project(github_login: str):
         flash("Project name contains invalid characters.", "error")
         return redirect(url_for("portfolio", github_login=github_login))
 
-    ok, repo_url, err = _gh_create_repo(token, repo_name, description=project_desc)
+    ok, repo_url, err = _gh_ensure_repo(token, github_login, repo_name, description=project_desc)
     if not ok:
         flash(err or "Could not create GitHub repo. Try a different project name.", "error")
         return redirect(url_for("portfolio", github_login=github_login))
 
+    readme = _render_standalone_project_readme(project_name, project_desc)
+    ok_readme, _, err_readme = _gh_upsert_file(
+        token,
+        github_login,
+        repo_name,
+        "README.md",
+        readme,
+        f"Add {project_name}",
+    )
+    if not ok_readme:
+        flash(err_readme or "Project repo created, but README upload failed.", "error")
+
     _add_project(github_login, project_name, project_desc, repo_url)
-    flash(f"Project repo created: {repo_name}", "info")
+    flash(f"Project saved to GitHub: {repo_name}", "info")
     return redirect(url_for("portfolio", github_login=github_login))
 
 
