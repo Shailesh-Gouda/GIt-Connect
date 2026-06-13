@@ -7,7 +7,7 @@ import time
 from datetime import datetime, timezone
 from urllib.parse import urlencode, urlparse
 
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, send_from_directory, session, url_for
 import requests
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.utils import secure_filename
@@ -34,13 +34,30 @@ if PUBLIC_BASE_URL and PUBLIC_BASE_URL.strip().lower().startswith("https://"):
     app.config.setdefault("SESSION_COOKIE_SECURE", True)
 
 # 📁 Upload config
-UPLOAD_FOLDER = "static/uploads"
+DATA_DIR = os.environ.get("DATA_DIR", "").strip()
+UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER") or (
+    os.path.join(DATA_DIR, "uploads") if DATA_DIR else os.path.join(app.static_folder or "static", "uploads")
+)
+UPLOAD_URL_PATH = (os.environ.get("UPLOAD_URL_PATH") or ("/uploads" if DATA_DIR else "/static/uploads")).rstrip("/")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 RESUME_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "resumes")
 os.makedirs(RESUME_UPLOAD_FOLDER, exist_ok=True)
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "portpolio.db")
+DB_PATH = os.environ.get("DATABASE_PATH") or (
+    os.path.join(DATA_DIR, "portpolio.db") if DATA_DIR else os.path.join(os.path.dirname(__file__), "portpolio.db")
+)
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+
+
+@app.get(f"{UPLOAD_URL_PATH}/<path:filename>")
+def uploaded_file(filename: str):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
+
+
+def _uploaded_url(filename: str) -> str:
+    clean = (filename or "").replace("\\", "/").strip("/")
+    return f"{UPLOAD_URL_PATH}/{clean}"
 
 
 def _oauth_configured() -> bool:
@@ -1292,7 +1309,7 @@ def save():
     is_edit_mode = request.form.get("edit_mode") == "1" and bool(existing)
 
     if filename:
-        profile_pic = f"/static/uploads/{filename}"
+        profile_pic = _uploaded_url(filename)
     elif is_edit_mode:
         profile_pic = (existing.get("profile_pic") or "") if existing else ""
     else:
@@ -1312,7 +1329,7 @@ def save():
             resume_file.save(os.path.join(RESUME_UPLOAD_FOLDER, resume_filename))
 
     if resume_filename:
-        resume_url = f"/static/uploads/resumes/{resume_filename}"
+        resume_url = _uploaded_url(f"resumes/{resume_filename}")
 
     # 🚀 CREATE GITHUB REPO (skip during edit mode to avoid duplicates)
     repo_url = existing.get("repo_url") if existing else ""

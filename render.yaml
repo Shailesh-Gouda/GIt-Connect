@@ -4,9 +4,21 @@ services:
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    disk:
+      name: gitconnect-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: FLASK_SECRET_KEY
         generateValue: true
+      - key: DATA_DIR
+        value: /var/data
+      - key: DATABASE_PATH
+        value: /var/data/portpolio.db
+      - key: UPLOAD_FOLDER
+        value: /var/data/uploads
+      - key: UPLOAD_URL_PATH
+        value: /uploads
       - key: GITHUB_CLIENT_ID
         sync: false
       - key: GITHUB_CLIENT_SECRET
